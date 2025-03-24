@@ -1,0 +1,8 @@
+# Tüm metin dosyaları için otomatik satır sonu normalizasyonu
+* text=auto
+
+# Bash script ve Linux/macOS çalıştırılabilir dosyalar için LF
+/mvnw text eol=lf
+
+# Windows batch scriptler için CRLF
+*.cmd text eol=crlf

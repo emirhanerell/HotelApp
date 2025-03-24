@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Otel Yönetim Sistemi</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <h1>Otel Yönetim</h1>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#anasayfa">Ana Sayfa</a></li>
+            <li><a href="#odalar">Odalar</a></li>
+            <li><a href="#rezervasyon">Rezervasyon</a></li>
+            <li><a href="#musteriler">Müşteriler</a></li>
+            <li><a href="#raporlar">Raporlar</a></li>
+            <li><a href="#" id="logoutBtn">Çıkış Yap</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section id="anasayfa" class="hero-section">
+            <h2>Hoş Geldiniz</h2>
+            <p>Otel yönetim sistemine hoş geldiniz. Lütfen yapmak istediğiniz işlemi seçin.</p>
+        </section>
+
+        <section id="odalar" class="rooms-section">
+            <h2>Oda Listesi</h2>
+            <div class="rooms-grid" id="roomsContainer">
+                <!-- Odalar JavaScript ile buraya eklenecek -->
+            </div>
+        </section>
+
+        <section id="oda-olustur" class="room-create-section">
+            <h2>Yeni Oda Ekle</h2>
+            <form id="roomCreateForm">
+                <div class="form-group">
+                    <label for="roomNumber">Oda Numarası:</label>
+                    <input type="number" id="roomNumber" required>
+                </div>
+                <div class="form-group">
+                    <label for="roomType">Oda Tipi:</label>
+                    <select id="roomType" required>
+                        <option value="">Oda Tipi Seçin</option>
+                        <option value="STANDARD">Standart</option>
+                        <option value="DELUXE">Deluxe</option>
+                        <option value="SUITE">Suite</option>
+                        <option value="FAMILY">Aile Odası</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="roomPrice">Oda Fiyatı (TL):</label>
+                    <input type="number" id="roomPrice" required>
+                </div>
+                <div class="form-group">
+                    <label for="roomCapacity">Oda Kapasitesi:</label>
+                    <input type="number" id="roomCapacity" required>
+                </div>
+                <div class="form-group">
+                    <label for="roomStatus">Oda Durumu:</label>
+                    <select id="roomStatus" required>
+                        <option value="AVAILABLE">Müsait</option>
+                        <option value="OCCUPIED">Dolu</option>
+                        <option value="MAINTENANCE">Bakımda</option>
+                    </select>
+                </div>
+                <button type="submit">Oda Ekle</button>
+            </form>
+        </section>
+
+        <section id="rezervasyon" class="reservation-section">
+            <h2>Yeni Rezervasyon</h2>
+            <form id="reservationForm">
+                <div class="form-group">
+                    <label for="roomNumber">Oda Numarası:</label>
+                    <input type="number" id="roomNumber" required>
+                </div>
+                <div class="form-group">
+                    <label for="customerName">Müşteri Adı:</label>
+                    <input type="text" id="customerName" required>
+                </div>
+                <div class="form-group">
+                    <label for="checkIn">Giriş Tarihi:</label>
+                    <input type="date" id="checkIn" required>
+                </div>
+                <div class="form-group">
+                    <label for="checkOut">Çıkış Tarihi:</label>
+                    <input type="date" id="checkOut" required>
+                </div>
+                <button type="submit">Rezervasyon Yap</button>
+            </form>
+        </section>
+
+        <section id="musteriler" class="customers-section">
+            <h2>Müşteri Listesi</h2>
+            <div class="customers-table" id="customersContainer">
+                <!-- Müşteriler JavaScript ile buraya eklenecek -->
+            </div>
+        </section>
+
+        <section id="raporlar" class="reports-section">
+            <h2>Raporlar</h2>
+            <div class="reports-grid">
+                <div class="report-card">
+                    <h3>Günlük Doluluk</h3>
+                    <div id="dailyOccupancy"></div>
+                </div>
+                <div class="report-card">
+                    <h3>Aylık Gelir</h3>
+                    <div id="monthlyRevenue"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Otel Yönetim Sistemi. Tüm hakları saklıdır.</p>
+    </footer>
+
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // Çıkış yapma işlemi
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+</html> 
