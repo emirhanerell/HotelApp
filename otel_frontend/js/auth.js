@@ -5,80 +5,99 @@ const API_BASE_URL = 'http://localhost:8080/api';
 const loginForm = document.getElementById('loginForm');
 const registerForm = document.getElementById('registerForm');
 
-// Login form işlemi
-if (loginForm) {
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+// Auth JavaScript
 
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
+document.addEventListener('DOMContentLoaded', function() {
+    // Kayıt formu varsa
+    if (registerForm) {
+        registerForm.addEventListener('submit', handleRegister);
+    }
 
-        try {
-            const response = await fetch(`${API_BASE_URL}/auth/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ email, password })
-            });
+    // Giriş formu varsa
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
+});
 
-            if (response.ok) {
-                const data = await response.json();
-                // Token'ı localStorage'a kaydet
-                localStorage.setItem('token', data.token);
-                
-                // Kullanıcıyı ana sayfaya yönlendir
-                window.location.href = 'index.html';
-            } else {
-                const error = await response.json();
-                showError(loginForm, error.message || 'Giriş başarısız.');
-            }
-        } catch (error) {
-            showError(loginForm, 'Bir hata oluştu. Lütfen tekrar deneyin.');
+// Kayıt işlemi
+async function handleRegister(event) {
+    event.preventDefault();
+    
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    // Şifre kontrolü
+    if (password !== confirmPassword) {
+        alert('Şifreler eşleşmiyor!');
+        return;
+    }
+
+    try {
+        // API'ye kayıt isteği gönder
+        const response = await fetch(`${API_BASE_URL}/admin/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name,
+                email,
+                password
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Başarılı kayıt
+            alert('Kayıt başarılı! Giriş yapabilirsiniz.');
+            window.location.href = 'login.html';
+        } else {
+            // Hata durumu
+            alert(data.message || 'Kayıt sırasında bir hata oluştu.');
         }
-    });
+    } catch (error) {
+        console.error('Kayıt hatası:', error);
+        alert('Kayıt sırasında bir hata oluştu. Lütfen tekrar deneyin.');
+    }
 }
 
-// Register form işlemi
-if (registerForm) {
-    registerForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+// Giriş işlemi
+async function handleLogin(event) {
+    event.preventDefault();
+    
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
 
-        const name = document.getElementById('name').value;
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
+    try {
+        // API'ye giriş isteği gönder
+        const response = await fetch(`${API_BASE_URL}/admin/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email,
+                password
+            })
+        });
 
-        // Şifre kontrolü
-        if (password !== confirmPassword) {
-            showError(registerForm, 'Şifreler eşleşmiyor.');
-            return;
+        const data = await response.json();
+
+        if (response.ok) {
+            // Başarılı giriş
+            localStorage.setItem('adminToken', data.token);
+            window.location.href = 'admin-dashboard.html';
+        } else {
+            // Hata durumu
+            alert(data.message || 'Giriş sırasında bir hata oluştu.');
         }
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/auth/register`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ name, email, password })
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                // Token'ı localStorage'a kaydet
-                localStorage.setItem('token', data.token);
-                
-                // Kullanıcıyı ana sayfaya yönlendir
-                window.location.href = 'index.html';
-            } else {
-                const error = await response.json();
-                showError(registerForm, error.message || 'Kayıt başarısız.');
-            }
-        } catch (error) {
-            showError(registerForm, 'Bir hata oluştu. Lütfen tekrar deneyin.');
-        }
-    });
+    } catch (error) {
+        console.error('Giriş hatası:', error);
+        alert('Giriş sırasında bir hata oluştu. Lütfen tekrar deneyin.');
+    }
 }
 
 // Hata mesajı gösterme fonksiyonu
@@ -100,9 +119,16 @@ function showError(form, message) {
 
 // Token kontrolü
 function checkAuth() {
-    const token = localStorage.getItem('token');
-    if (!token && !window.location.href.includes('login.html') && !window.location.href.includes('register.html')) {
-        // Token yoksa ve login/register sayfasında değilse, login sayfasına yönlendir
+    const token = localStorage.getItem('adminToken');
+    const currentPage = window.location.pathname.split('/').pop();
+    
+    // Eğer login veya register sayfasındaysa token kontrolü yapma
+    if (currentPage === 'login.html' || currentPage === 'register.html') {
+        return;
+    }
+    
+    // Diğer sayfalarda token yoksa login sayfasına yönlendir
+    if (!token) {
         window.location.href = 'login.html';
     }
 }
