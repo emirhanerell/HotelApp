@@ -16,7 +16,6 @@ public interface RoomRepository extends JpaRepository<Room, Long>, JpaSpecificat
     Optional<Room> findByRoomNumber(String roomNumber);
     @Query("SELECT r FROM Room r WHERE r.price BETWEEN :minPrice AND :maxPrice")
     List<Room> findByPriceBetween(@Param("minPrice") Double minPrice, @Param("maxPrice") Double maxPrice);
-
-
+    boolean existsByRoomNumber(String roomNumber);
 }
 

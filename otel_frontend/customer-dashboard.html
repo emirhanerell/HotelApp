@@ -6,41 +6,178 @@
     <title>Müşteri Paneli - Otel Yönetim Sistemi</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/auth.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
-    <div class="dashboard-container">
-        <header class="dashboard-header">
-            <h1>Müşteri Paneli</h1>
-            <button onclick="logout()" class="btn btn-secondary">Çıkış Yap</button>
-        </header>
-        <main class="dashboard-content">
-            <div class="welcome-section">
-                <h2>Hoş Geldiniz</h2>
-                <p>Otel yönetim sistemine hoş geldiniz. Lütfen yapmak istediğiniz işlemi seçin.</p>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#" onclick="showDashboard()">
+                                <i class="fas fa-home"></i> Ana Sayfa
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showReservations()">
+                                <i class="fas fa-calendar-alt"></i> Rezervasyonlarım
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showProfile()">
+                                <i class="fas fa-user"></i> Profilim
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="logout()">
+                                <i class="fas fa-sign-out-alt"></i> Çıkış Yap
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </div>
-            <div class="dashboard-grid">
-                <div class="dashboard-card">
-                    <h3>Rezervasyonlarım</h3>
-                    <p>Mevcut ve geçmiş rezervasyonlarınızı görüntüleyin.</p>
-                    <button class="btn btn-primary">Rezervasyonları Görüntüle</button>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Müşteri Paneli</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="showReservations()">
+                                <i class="fas fa-calendar-alt"></i> Rezervasyonlarım
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="showProfile()">
+                                <i class="fas fa-user"></i> Profilim
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <div class="dashboard-card">
-                    <h3>Profil Bilgilerim</h3>
-                    <p>Kişisel bilgilerinizi görüntüleyin ve düzenleyin.</p>
-                    <button class="btn btn-primary">Profili Düzenle</button>
+                <div class="welcome-section">
+                    <h2>Hoş Geldiniz</h2>
+                    <p>Otel yönetim sistemine hoş geldiniz. Lütfen yapmak istediğiniz işlemi seçin.</p>
                 </div>
-                <div class="dashboard-card">
-                    <h3>Yeni Rezervasyon</h3>
-                    <p>Yeni bir rezervasyon oluşturun.</p>
-                    <button class="btn btn-primary">Rezervasyon Yap</button>
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <h3>Rezervasyonlarım</h3>
+                        <p>Mevcut ve geçmiş rezervasyonlarınızı görüntüleyin.</p>
+                        <button class="btn btn-primary" onclick="showReservations()">
+                            <i class="fas fa-list"></i> Rezervasyonları Görüntüle
+                        </button>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Profil Bilgilerim</h3>
+                        <p>Kişisel bilgilerinizi görüntüleyin ve düzenleyin.</p>
+                        <button class="btn btn-primary">
+                            <i class="fas fa-user-edit"></i> Profili Düzenle
+                        </button>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Yeni Rezervasyon</h3>
+                        <p>Yeni bir rezervasyon oluşturun.</p>
+                        <button class="btn btn-primary" onclick="showReservationModal()">
+                            <i class="fas fa-calendar-plus"></i> Rezervasyon Yap
+                        </button>
+                    </div>
                 </div>
-            </div>
-        </main>
+            </main>
+        </div>
     </div>
-    <script src="js/customer-auth.js"></script>
+
+    <!-- Rezervasyon Modal -->
+    <div class="modal fade" id="reservationModal" tabindex="-1" aria-labelledby="reservationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reservationModalLabel">Yeni Rezervasyon</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="reservationForm">
+                        <div class="mb-3">
+                            <label for="roomSelect" class="form-label">Oda Seçin</label>
+                            <select class="form-select" id="roomSelect" required>
+                                <option value="">Oda seçin...</option>
+                            </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="checkInDate" class="form-label">Giriş Tarihi</label>
+                                <input type="date" class="form-control" id="checkInDate" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="checkOutDate" class="form-label">Çıkış Tarihi</label>
+                                <input type="date" class="form-control" id="checkOutDate" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="numberOfGuests" class="form-label">Misafir Sayısı</label>
+                            <input type="number" class="form-control" id="numberOfGuests" min="1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="specialRequests" class="form-label">Özel İstekler</label>
+                            <textarea class="form-control" id="specialRequests" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Toplam Fiyat</label>
+                            <div id="totalPrice" class="form-control-plaintext">0.00 TL</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="button" class="btn btn-primary" onclick="submitReservation()">Rezervasyon Yap</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rezervasyonlarım Modal -->
+    <div class="modal fade" id="reservationsModal" tabindex="-1" aria-labelledby="reservationsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reservationsModalLabel">Rezervasyonlarım</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="reservationsList" class="row">
+                        <!-- Rezervasyonlar buraya dinamik olarak eklenecek -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="js/customer.js"></script>
     <script>
+        let reservationModal;
+        let reservationsModal;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            reservationModal = new bootstrap.Modal(document.getElementById('reservationModal'));
+            reservationsModal = new bootstrap.Modal(document.getElementById('reservationsModal'));
+            checkSession();
+            loadAvailableRooms();
+            loadCustomerReservations();
+        });
+
+        function showReservationModal() {
+            reservationModal.show();
+        }
+
+        function showReservations() {
+            reservationsModal.show();
+        }
+
         function logout() {
             localStorage.removeItem('customerToken');
+            localStorage.removeItem('customerId');
             window.location.href = 'customer-login.html';
         }
     </script>

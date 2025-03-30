@@ -1,16 +1,15 @@
 package com.antalyaotel.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import java.time.LocalDate;
 
-@Getter
-@Setter
+@Data
 public class ReservationRequest {
-    private Long userId;
+    private Long roomId;
     private Long customerId;
-    private Long roomNumber;
-    private LocalDate startDate;
-    private LocalDate endDate;
+    private LocalDate checkInDate;
+    private LocalDate checkOutDate;
+    private Integer numberOfGuests;
+    private String specialRequests;
 }
 

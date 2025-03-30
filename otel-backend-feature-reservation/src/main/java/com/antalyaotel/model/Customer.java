@@ -10,7 +10,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "customers")
@@ -52,12 +51,6 @@ public class Customer {
 
     @Column(name = "id_number", nullable = false, unique = true)
     private String idNumber;
-
-    @Column
-    private String specialRequests;
-
-    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
-    private List<Reservation> reservations;
 
     @Column(nullable = false)
     private boolean isActive = true;

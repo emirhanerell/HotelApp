@@ -3,119 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Otel Yönetim Paneli</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Admin Dashboard - Antalya Otel</title>
     <link rel="stylesheet" href="css/admin.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <div class="admin-container">
-        <!-- Sidebar -->
-        <nav class="admin-sidebar">
-            <div class="sidebar-header">
-                <h3>Otel Yönetimi</h3>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#" data-section="dashboard">
+                                <i class="fas fa-home"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-section="rooms">
+                                <i class="fas fa-bed"></i> Odalar
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-section="reservations">
+                                <i class="fas fa-calendar-alt"></i> Rezervasyonlar
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-section="customers">
+                                <i class="fas fa-users"></i> Müşteriler
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-section="settings">
+                                <i class="fas fa-cog"></i> Ayarlar
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </div>
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link active" href="#dashboard">
-                        <i class="fas fa-home"></i> Ana Panel
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#rooms">
-                        <i class="fas fa-bed"></i> Oda Yönetimi
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#reservations">
-                        <i class="fas fa-calendar-check"></i> Rezervasyonlar
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#customers">
-                        <i class="fas fa-users"></i> Müşteriler
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#reports">
-                        <i class="fas fa-chart-bar"></i> Raporlar
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#settings">
-                        <i class="fas fa-cog"></i> Ayarlar
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" id="logoutBtn">
-                        <i class="fas fa-sign-out-alt"></i> Çıkış
-                    </a>
-                </li>
-            </ul>
-        </nav>
 
-        <!-- Main Content -->
-        <main class="admin-main">
-            <header class="admin-header">
-                <div class="header-content">
-                    <h2>Hoş Geldiniz, Admin</h2>
-                    <div class="admin-profile">
-                        <span class="admin-name">Admin Kullanıcı</span>
-                        <img src="https://via.placeholder.com/40" alt="Admin" class="admin-avatar">
-                    </div>
-                </div>
-            </header>
-
-            <!-- Dashboard Content -->
-            <div class="dashboard-content">
-                <!-- İstatistik Kartları -->
-                <div class="row mb-4">
-                    <div class="col-md-3">
-                        <div class="stat-card">
-                            <i class="fas fa-bed"></i>
-                            <div class="stat-info">
-                                <h4>Toplam Oda</h4>
-                                <p>50</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-card">
-                            <i class="fas fa-users"></i>
-                            <div class="stat-info">
-                                <h4>Aktif Müşteriler</h4>
-                                <p>120</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-card">
-                            <i class="fas fa-calendar-check"></i>
-                            <div class="stat-info">
-                                <h4>Bugünkü Rezervasyonlar</h4>
-                                <p>15</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-card">
-                            <i class="fas fa-money-bill-wave"></i>
-                            <div class="stat-info">
-                                <h4>Günlük Gelir</h4>
-                                <p>₺5,000</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Oda Durumu -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5>Oda Durumu</h5>
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+            <!-- Ana içerik -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Admin Dashboard</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <button type="button" class="btn btn-primary" id="addRoomBtn" data-bs-toggle="modal" data-bs-target="#addRoomModal">
                             <i class="fas fa-plus"></i> Yeni Oda Ekle
                         </button>
+                        <button type="button" class="btn btn-danger ms-2" id="logoutBtn">
+                            <i class="fas fa-sign-out-alt"></i> Çıkış Yap
+                        </button>
+                    </div>
+                </div>
+
+                <!-- İstatistik Kartları -->
+                <div class="row">
+                    <div class="col-md-3 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Toplam Oda</h5>
+                                <p class="card-text" id="totalRooms">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Müsait Oda</h5>
+                                <p class="card-text" id="availableRooms">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Dolu Oda</h5>
+                                <p class="card-text" id="occupiedRooms">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Toplam Gelir</h5>
+                                <p class="card-text" id="totalIncome">₺0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Oda Listesi -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Oda Listesi</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -129,110 +110,58 @@
                                         <th>İşlemler</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>101</td>
-                                        <td>Standart</td>
-                                        <td><span class="badge bg-success">Müsait</span></td>
-                                        <td>₺500</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-info"><i class="fas fa-edit"></i></button>
-                                            <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
-                                        </td>
-                                    </tr>
+                                <tbody id="roomTableBody">
+                                    <!-- Odalar buraya dinamik olarak eklenecek -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
-
-                <!-- Son Rezervasyonlar -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5>Son Rezervasyonlar</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Rezervasyon No</th>
-                                        <th>Müşteri</th>
-                                        <th>Oda</th>
-                                        <th>Giriş Tarihi</th>
-                                        <th>Çıkış Tarihi</th>
-                                        <th>Durum</th>
-                                        <th>İşlemler</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>#12345</td>
-                                        <td>Ahmet Yılmaz</td>
-                                        <td>101</td>
-                                        <td>2024-03-24</td>
-                                        <td>2024-03-26</td>
-                                        <td><span class="badge bg-success">Aktif</span></td>
-                                        <td>
-                                            <button class="btn btn-sm btn-info"><i class="fas fa-eye"></i></button>
-                                            <button class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
+            </main>
+        </div>
     </div>
 
     <!-- Oda Ekleme Modal -->
-    <div class="modal fade" id="addRoomModal" tabindex="-1">
+    <div class="modal fade" id="addRoomModal" tabindex="-1" aria-labelledby="addRoomModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Yeni Oda Ekle</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title" id="addRoomModalLabel">Yeni Oda Ekle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="addRoomForm">
                         <div class="mb-3">
-                            <label class="form-label">Oda Numarası</label>
-                            <input type="number" class="form-control" required>
+                            <label for="roomNumber" class="form-label">Oda Numarası</label>
+                            <input type="text" class="form-control" id="roomNumber" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Oda Tipi</label>
-                            <select class="form-select" required>
+                            <label for="roomType" class="form-label">Oda Tipi</label>
+                            <select class="form-select" id="roomType" required>
                                 <option value="">Seçiniz</option>
-                                <option value="standart">Standart</option>
-                                <option value="deluxe">Deluxe</option>
-                                <option value="suite">Suite</option>
+                                <option value="STANDARD">Standart</option>
+                                <option value="DELUXE">Deluxe</option>
+                                <option value="SUITE">Suite</option>
+                                <option value="PRESIDENTIAL">Presidential Suite</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Fiyat</label>
-                            <input type="number" class="form-control" required>
+                            <label for="price" class="form-label">Fiyat (TL)</label>
+                            <input type="number" class="form-control" id="price" required min="0" step="0.01">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Kapasite</label>
-                            <input type="number" class="form-control" required>
+                            <label for="capacity" class="form-label">Kapasite (Kişi)</label>
+                            <input type="number" class="form-control" id="capacity" required min="1">
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Açıklama</label>
-                            <textarea class="form-control" rows="3"></textarea>
-                        </div>
+                        <button type="submit" class="btn btn-primary">Oda Ekle</button>
                     </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                    <button type="button" class="btn btn-primary">Kaydet</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="js/admin.js"></script>
 </body>
 </html> 

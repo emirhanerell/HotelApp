@@ -41,8 +41,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/rooms/**").permitAll()
+                        .requestMatchers("/api/rooms/filter", "/api/rooms/filtered").permitAll()
                         .requestMatchers("/error").permitAll()
+                        
+                        // Admin endpoints
+                        .requestMatchers("/api/admin/**").permitAll()
+                        
+                        // Room management endpoints (Admin only)
+                        .requestMatchers("/api/rooms/**").hasRole("ADMIN")
                         
                         // Customer authentication endpoints
                         .requestMatchers("/api/customers/register", "/api/customers/login").permitAll()
@@ -59,8 +65,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/employees/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/employees/**").hasRole("ADMIN")
                         
-                        // Admin endpoints
-                        .requestMatchers(HttpMethod.PUT, "/api/admin/reservations/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -73,9 +77,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:8000"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:8000", "http://127.0.0.1:8000"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setExposedHeaders(Arrays.asList("Authorization"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);

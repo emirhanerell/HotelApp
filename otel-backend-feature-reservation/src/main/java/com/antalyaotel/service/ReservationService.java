@@ -1,219 +1,119 @@
 package com.antalyaotel.service;
 
-import com.antalyaotel.enums.ReservationStatus;
-import com.antalyaotel.model.Reservation;
-import com.antalyaotel.model.Room;
-import com.antalyaotel.model.User;
-import com.antalyaotel.model.Customer;
-import com.antalyaotel.repository.ReservationRepository;
-import com.antalyaotel.repository.RoomRepository;
-import com.antalyaotel.repository.UserRepository;
-import com.antalyaotel.repository.CustomerRepository;
+import com.antalyaotel.model.*;
+import com.antalyaotel.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.ArrayList;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ReservationService {
-
+    private static final Logger logger = LoggerFactory.getLogger(ReservationService.class);
     private final ReservationRepository reservationRepository;
-    private final UserRepository userRepository;
     private final RoomRepository roomRepository;
     private final CustomerRepository customerRepository;
-    private final EmailService emailService;
-    private final GoogleCalendarService googleCalendarService;
 
-    // 📌 1️⃣ Rezervasyon oluşturma işlemi
-    public Reservation createReservation(Long userId, Long customerId, Long roomId, LocalDate startDate, LocalDate endDate) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
-
-        Room room = roomRepository.findById(roomId)
-                .orElseThrow(() -> new RuntimeException("Room not found"));
-
-        // 🔥 Oda doluluk kontrolü
-        boolean isRoomAvailable = !reservationRepository.existsOverlappingReservation(roomId, startDate, endDate);
-        if (!isRoomAvailable) {
-            throw new RuntimeException("This room is already booked for the selected dates.");
-        }
-
-        Reservation reservation = Reservation.builder()
-                .user(user)
-                .customer(customer)
-                .room(room)
-                .startDate(startDate)
-                .endDate(endDate)
-                .status(ReservationStatus.PENDING) // Varsayılan olarak PENDING
-                .build();
-
-        reservationRepository.save(reservation);
-        emailService.sendReservationConfirmation(user.getEmail(), reservation);
-
-        return reservation;
-    }
-
-    // 📌 2️⃣ Kullanıcının rezervasyonlarını listeleme
-    public List<Reservation> getUserReservations(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        return reservationRepository.findByUser(user);
-    }
-
-    // 📌 3️⃣ Tüm rezervasyonları listeleme (Admin yetkisi ile)
-    public List<Reservation> getAllReservations() {
-        return reservationRepository.findAll();
-    }
-
-    // 📌 4️⃣ Rezervasyonu güncelleme
-    public Reservation updateReservation(Long reservationId, LocalDate startDate, LocalDate endDate, ReservationStatus status) {
-        Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Reservation not found"));
-
-        // 🔥 Tarih değiştiyse, çakışma kontrolü yap
-        if (!reservation.getStartDate().equals(startDate) || !reservation.getEndDate().equals(endDate)) {
-            boolean isRoomAvailable = reservationRepository
-                    .findByRoomAndStartDateLessThanEqualAndEndDateGreaterThanEqual(reservation.getRoom(), endDate, startDate)
-                    .isEmpty();
-
-            if (!isRoomAvailable) {
-                throw new RuntimeException("This room is already booked for the selected dates.");
+    public Reservation createReservation(Reservation reservation) {
+        try {
+            logger.info("Creating reservation: {}", reservation);
+            
+            // Oda kontrolü
+            Room room = roomRepository.findById(reservation.getRoom().getId())
+                    .orElseThrow(() -> new RuntimeException("Oda bulunamadı: " + reservation.getRoom().getId()));
+            
+            // Müşteri kontrolü
+            Customer customer = customerRepository.findById(reservation.getCustomer().getId())
+                    .orElseThrow(() -> new RuntimeException("Müşteri bulunamadı: " + reservation.getCustomer().getId()));
+            
+            // Misafir sayısı kontrolü
+            if (reservation.getNumberOfGuests() > room.getCapacity()) {
+                throw new RuntimeException("Seçilen oda için belirtilen misafir sayısı çok fazla");
             }
-        }
-
-        reservation.setStartDate(startDate);
-        reservation.setEndDate(endDate);
-        reservation.setStatus(status);
-        return reservationRepository.save(reservation);
-    }
-
-    // 📌 5️⃣ Rezervasyonu silme
-    public void deleteReservation(Long reservationId) {
-        Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Reservation not found"));
-        reservationRepository.delete(reservation);
-    }
-    private void removePendingConflictingReservations(Reservation confirmedReservation) {
-        List<Reservation> conflictingReservations = reservationRepository.findByRoomAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
-                confirmedReservation.getRoom(),
-                confirmedReservation.getEndDate(),
-                confirmedReservation.getStartDate()
-        );
-
-        List<Reservation> pendingReservations = conflictingReservations.stream()
-                .filter(res -> res.getStatus() == ReservationStatus.PENDING)
-                .collect(Collectors.toList());
-
-        reservationRepository.deleteAll(pendingReservations);
-    }
-
-    // 📌 6️⃣ Rezervasyonu ONAYLAMA (Admin)
-    public Reservation confirmReservation(Long reservationId, Long adminId)throws IOException {
-        Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Reservation not found"));
-
-        if (!reservation.getStatus().equals(ReservationStatus.PENDING)) {
-            throw new RuntimeException("Only PENDING reservations can be confirmed.");
-        }
-
-        boolean isRoomAvailable = !reservationRepository.existsOverlappingReservation(
-                reservation.getRoom().getId(),
-                reservation.getStartDate(),
-                reservation.getEndDate());
-
-        if (!isRoomAvailable) {
-            throw new RuntimeException("This room is no longer available for the selected dates.");
-        }
-
-        removePendingConflictingReservations(reservation);
-
-        User admin = userRepository.findById(adminId)
-                .orElseThrow(() -> new RuntimeException("Admin user not found"));
-        reservation.setStatus(ReservationStatus.CONFIRMED);
-        reservation.setApprovedByAdmin(admin);
-        reservationRepository.save(reservation);
-
-        // 📧 Kullanıcıya bildirim gönder
-        emailService.sendEmail(reservation.getUser().getEmail(),
-                "Rezervasyon Onaylandı ✅",
-                "Sayın " + reservation.getUser().getName() + ", rezervasyonunuz onaylandı!\n" +
-                        "Oda No: " + reservation.getRoom().getRoomNumber() + "\n" +
-                        "Giriş: " + reservation.getStartDate() + "\n" +
-                        "Çıkış: " + reservation.getEndDate());
-
-        // 🔥 Google Calendar'a ekleme
-        googleCalendarService.addEventToCalendar(reservation);
-
-        return reservation;
-    }
-
-    public List<Reservation> getReservationsByRoomType(String roomType) {
-        return reservationRepository.findAll().stream()
-                .filter(reservation -> reservation.getRoom().getType().equalsIgnoreCase(roomType))
-                .collect(Collectors.toList());
-    }
-
-
-    // 📌 7️⃣ Rezervasyonu İPTAL ETME (Admin)
-    public Reservation cancelReservation(Long reservationId, Long adminId) {
-        Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Reservation not found"));
-
-        if (!reservation.getStatus().equals(ReservationStatus.PENDING)) {
-            throw new RuntimeException("Only PENDING reservations can be canceled.");
-        }
-
-        reservation.setStatus(ReservationStatus.CANCELED);
-        reservation.setApprovedByAdmin(userRepository.findById(adminId)
-                .orElseThrow(() -> new RuntimeException("Admin user not found")));
-
-        reservationRepository.save(reservation);
-
-        // 📧 Kullanıcıya e-posta bildirimi
-        emailService.sendEmail(reservation.getUser().getEmail(),
-                "Rezervasyon İptal Edildi ❌",
-                "Sayın " + reservation.getUser().getName() + ", rezervasyonunuz iptal edilmiştir.\n" +
-                        "Oda No: " + reservation.getRoom().getRoomNumber());
-
-        return reservation;
-    }
-
-    // 📌 8️⃣ Alternatif Tarihleri Bulma
-    public List<LocalDate> findAvailableDates(Long reservationId) {
-        Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Reservation not found"));
-
-        List<Reservation> reservations = reservationRepository
-                .findByRoomAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
-                        reservation.getRoom(),
-                        reservation.getEndDate(),
-                        reservation.getStartDate()
-                );
-
-        List<LocalDate> availableDates = new ArrayList<>();
-        LocalDate tempDate = reservation.getStartDate();
-
-        while (!tempDate.isAfter(reservation.getEndDate())) {
-            LocalDate finalTempDate = tempDate;  // Lambda içinde kullanmak için kopya değişken oluştur
-
-            boolean isAvailable = reservations.stream().noneMatch(r ->
-                    !finalTempDate.isBefore(r.getStartDate()) && !finalTempDate.isAfter(r.getEndDate()));
-
-            if (isAvailable) {
-                availableDates.add(tempDate);
+            
+            // Oda müsaitlik kontrolü
+            if (!isRoomAvailable(room, reservation.getCheckInDate(), reservation.getCheckOutDate())) {
+                throw new RuntimeException("Seçilen tarihler için oda müsait değil");
             }
-            tempDate = tempDate.plusDays(1);
+            
+            // Toplam fiyat hesaplama
+            long days = ChronoUnit.DAYS.between(reservation.getCheckInDate(), reservation.getCheckOutDate());
+            double totalPrice = room.getPrice() * days;
+            
+            // Rezervasyon nesnesini güncelle
+            reservation.setRoom(room);
+            reservation.setCustomer(customer);
+            reservation.setTotalPrice(totalPrice);
+            reservation.setStatus(ReservationStatus.PENDING);
+            
+            // Rezervasyonu kaydet
+            Reservation savedReservation = reservationRepository.save(reservation);
+            logger.info("Reservation created successfully: {}", savedReservation.getId());
+            
+            return savedReservation;
+        } catch (Exception e) {
+            logger.error("Error creating reservation: ", e);
+            throw new RuntimeException("Rezervasyon oluşturulurken bir hata oluştu: " + e.getMessage());
         }
-
-        return availableDates;
     }
-}
+
+    public List<Reservation> getCustomerReservations(Long customerId) {
+        try {
+            logger.info("Fetching reservations for customer: {}", customerId);
+            Customer customer = customerRepository.findById(customerId)
+                    .orElseThrow(() -> new RuntimeException("Müşteri bulunamadı: " + customerId));
+            List<Reservation> reservations = reservationRepository.findByCustomer(customer);
+            logger.info("Found {} reservations for customer {}", reservations.size(), customerId);
+            return reservations;
+        } catch (Exception e) {
+            logger.error("Error fetching customer reservations: ", e);
+            throw new RuntimeException("Rezervasyonlar yüklenirken bir hata oluştu: " + e.getMessage());
+        }
+    }
+
+    public Reservation getReservationById(Long id) {
+        try {
+            logger.info("Fetching reservation with id: {}", id);
+            Reservation reservation = reservationRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Rezervasyon bulunamadı: " + id));
+            logger.info("Found reservation: {}", reservation.getId());
+            return reservation;
+        } catch (Exception e) {
+            logger.error("Error fetching reservation: ", e);
+            throw new RuntimeException("Rezervasyon yüklenirken bir hata oluştu: " + e.getMessage());
+        }
+    }
+
+    public Reservation updateReservationStatus(Long id, ReservationStatus status) {
+        try {
+            logger.info("Updating reservation status: id={}, status={}", id, status);
+            Reservation reservation = getReservationById(id);
+            reservation.setStatus(status);
+            Reservation updatedReservation = reservationRepository.save(reservation);
+            logger.info("Reservation status updated successfully: {}", updatedReservation.getId());
+            return updatedReservation;
+        } catch (Exception e) {
+            logger.error("Error updating reservation status: ", e);
+            throw new RuntimeException("Rezervasyon durumu güncellenirken bir hata oluştu: " + e.getMessage());
+        }
+    }
+
+    private boolean isRoomAvailable(Room room, LocalDate checkInDate, LocalDate checkOutDate) {
+        try {
+            boolean isAvailable = !reservationRepository.existsByRoomAndCheckInDateBetweenOrCheckOutDateBetween(
+                    room, checkInDate, checkOutDate, checkInDate, checkOutDate);
+            logger.info("Room {} availability check: {}", room.getId(), isAvailable);
+            return isAvailable;
+        } catch (Exception e) {
+            logger.error("Error checking room availability: ", e);
+            throw new RuntimeException("Oda müsaitlik kontrolü yapılırken bir hata oluştu: " + e.getMessage());
+        }
+    }
+} 

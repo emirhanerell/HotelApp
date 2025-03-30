@@ -85,8 +85,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (response.ok) {
                     const data = await response.json();
                     console.log('Giriş başarılı:', data);
+                    // Önce mevcut oturum bilgilerini temizle
+                    localStorage.clear();
+                    // Yeni oturum bilgilerini kaydet
                     localStorage.setItem('customerToken', data.token);
-                    window.location.href = 'customer-dashboard.html';
+                    localStorage.setItem('customerId', data.customerId);
+                    localStorage.setItem('userRole', 'CUSTOMER');
+                    // Yönlendirme öncesi kısa bir gecikme ekle
+                    setTimeout(() => {
+                        window.location.href = 'customer-dashboard.html';
+                    }, 100);
                 } else {
                     const error = await response.json();
                     console.error('Giriş hatası:', error);
@@ -103,10 +111,24 @@ document.addEventListener('DOMContentLoaded', () => {
 // Müşteri giriş kontrolü
 function checkCustomerAuth() {
     const customerToken = localStorage.getItem('customerToken');
-    if (!customerToken && !window.location.href.includes('customer-login.html') && !window.location.href.includes('customer-register.html')) {
+    const userRole = localStorage.getItem('userRole');
+    
+    // Eğer müşteri girişi yapılmışsa ve login/register sayfalarında değilsek
+    if (customerToken && userRole === 'CUSTOMER' && 
+        (window.location.href.includes('customer-login.html') || 
+         window.location.href.includes('customer-register.html'))) {
+        window.location.href = 'customer-dashboard.html';
+        return;
+    }
+    
+    // Eğer müşteri girişi yapılmamışsa ve login/register sayfalarında değilsek
+    if (!customerToken && !window.location.href.includes('customer-login.html') && 
+        !window.location.href.includes('customer-register.html')) {
         window.location.href = 'customer-login.html';
     }
 }
 
 // Sayfa yüklendiğinde auth kontrolü yap
-checkCustomerAuth(); 
+document.addEventListener('DOMContentLoaded', () => {
+    checkCustomerAuth();
+}); 

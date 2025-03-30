@@ -35,25 +35,35 @@ async function handleRegister(event) {
     }
 
     try {
+        console.log('Kayıt isteği gönderiliyor:', {
+            name,
+            email,
+            password,
+            role: 'ROLE_ADMIN'
+        });
+
         // API'ye kayıt isteği gönder
         const response = await fetch(`${API_BASE_URL}/admin/register`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
             body: JSON.stringify({
                 name,
                 email,
-                password
+                password,
+                role: 'ROLE_ADMIN'
             })
         });
 
         const data = await response.json();
+        console.log('Kayıt cevabı:', data);
 
         if (response.ok) {
             // Başarılı kayıt
-            alert('Kayıt başarılı! Giriş yapabilirsiniz.');
-            window.location.href = 'login.html';
+            localStorage.setItem('adminToken', data.token);
+            window.location.href = 'admin-dashboard.html';
         } else {
             // Hata durumu
             alert(data.message || 'Kayıt sırasında bir hata oluştu.');
@@ -72,11 +82,17 @@ async function handleLogin(event) {
     const password = document.getElementById('password').value;
 
     try {
+        console.log('Giriş isteği gönderiliyor:', {
+            email,
+            password
+        });
+
         // API'ye giriş isteği gönder
         const response = await fetch(`${API_BASE_URL}/admin/login`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
             body: JSON.stringify({
                 email,
@@ -85,18 +101,22 @@ async function handleLogin(event) {
         });
 
         const data = await response.json();
+        console.log('Giriş cevabı:', data);
 
         if (response.ok) {
-            // Başarılı giriş
-            localStorage.setItem('adminToken', data.token);
-            window.location.href = 'admin-dashboard.html';
+            if (data.token) {
+                // Başarılı giriş
+                localStorage.setItem('adminToken', data.token);
+                window.location.href = 'admin-dashboard.html';
+            } else {
+                throw new Error('Token alınamadı');
+            }
         } else {
-            // Hata durumu
-            alert(data.message || 'Giriş sırasında bir hata oluştu.');
+            throw new Error(data.message || 'Giriş başarısız');
         }
     } catch (error) {
         console.error('Giriş hatası:', error);
-        alert('Giriş sırasında bir hata oluştu. Lütfen tekrar deneyin.');
+        alert(error.message || 'Giriş sırasında bir hata oluştu. Lütfen tekrar deneyin.');
     }
 }
 
@@ -124,6 +144,10 @@ function checkAuth() {
     
     // Eğer login veya register sayfasındaysa token kontrolü yapma
     if (currentPage === 'login.html' || currentPage === 'register.html') {
+        if (token) {
+            // Token varsa admin paneline yönlendir
+            window.location.href = 'admin-dashboard.html';
+        }
         return;
     }
     

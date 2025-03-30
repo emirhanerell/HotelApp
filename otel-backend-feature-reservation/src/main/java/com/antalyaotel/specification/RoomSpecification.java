@@ -7,7 +7,7 @@ import java.util.List;
 
 public class RoomSpecification {
 
-    public static Specification<Room> filterRooms(Double priceMin, Double priceMax, String type, Boolean isAvailable ) {
+    public static Specification<Room> filterRooms(Double priceMin, Double priceMax, String type, Boolean isAvailable) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -18,10 +18,10 @@ public class RoomSpecification {
                 predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("price"), priceMax));
             }
             if (type != null) {
-                predicates.add(criteriaBuilder.equal(root.get("type"), type));
+                predicates.add(criteriaBuilder.equal(root.get("roomType"), type));
             }
-            if (isAvailable  != null) {
-                predicates.add(criteriaBuilder.equal(root.get("isAvailable "), isAvailable ));
+            if (isAvailable != null) {
+                predicates.add(criteriaBuilder.equal(root.get("isAvailable"), isAvailable));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

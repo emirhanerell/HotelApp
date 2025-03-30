@@ -14,9 +14,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class AdminService {
 
     private final AdminRepository adminRepository;
@@ -25,13 +29,13 @@ public class AdminService {
     private final AuthenticationManager authenticationManager;
 
     public AdminResponse register(AdminRegisterRequest request) {
-        log.info("Admin kayıt işlemi başlatıldı: {}", request.getEmail());
+        log.info("Admin kaydı başlatılıyor: {}", request.getEmail());
         
         try {
             // Email kontrolü
             if (adminRepository.existsByEmail(request.getEmail())) {
-                log.error("Email adresi zaten kayıtlı: {}", request.getEmail());
-                throw new RuntimeException("Bu email adresi zaten kayıtlı");
+                log.error("Bu email adresi zaten kullanımda: {}", request.getEmail());
+                throw new RuntimeException("Bu email adresi zaten kullanımda");
             }
 
             // Yeni admin oluştur
@@ -39,59 +43,58 @@ public class AdminService {
                     .name(request.getName())
                     .email(request.getEmail())
                     .password(passwordEncoder.encode(request.getPassword()))
+                    .role("ROLE_ADMIN")
                     .build();
 
             // Admin'i kaydet
-            admin = adminRepository.save(admin);
-            log.info("Admin başarıyla kaydedildi: {}", admin.getEmail());
+            Admin savedAdmin = adminRepository.save(admin);
+            log.info("Admin başarıyla kaydedildi: {}", savedAdmin.getEmail());
 
             // JWT token oluştur
-            String token = jwtService.generateToken(admin);
+            Map<String, Object> claims = new HashMap<>();
+            claims.put("role", "ROLE_ADMIN");
+            String token = jwtService.generateToken(claims, savedAdmin.getEmail());
             log.info("JWT token oluşturuldu");
 
-            // Response döndür
             return AdminResponse.builder()
-                    .id(admin.getId())
-                    .name(admin.getName())
-                    .email(admin.getEmail())
                     .token(token)
                     .build();
         } catch (Exception e) {
-            log.error("Admin kayıt işlemi başarısız: {}", e.getMessage());
-            throw new RuntimeException("Admin kayıt işlemi başarısız: " + e.getMessage());
+            log.error("Admin kaydı başarısız: {}", e.getMessage());
+            throw new RuntimeException("Admin kaydı başarısız: " + e.getMessage());
         }
     }
 
     public AdminResponse login(AdminLoginRequest request) {
-        log.info("Admin giriş işlemi başlatıldı: {}", request.getEmail());
+        log.info("Admin girişi başlatılıyor: {}", request.getEmail());
         
         try {
-            // Kimlik doğrulama
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-            );
-
             // Admin'i bul
             Admin admin = adminRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> {
                         log.error("Admin bulunamadı: {}", request.getEmail());
                         return new RuntimeException("Admin bulunamadı");
                     });
+            log.info("Admin bulundu: {}", admin.getEmail());
+
+            // Kimlik doğrulama
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
+            log.info("Kimlik doğrulama başarılı");
 
             // JWT token oluştur
-            String token = jwtService.generateToken(admin);
-            log.info("Admin başarıyla giriş yaptı: {}", admin.getEmail());
+            Map<String, Object> claims = new HashMap<>();
+            claims.put("role", admin.getRole());
+            String token = jwtService.generateToken(claims, admin.getEmail());
+            log.info("JWT token oluşturuldu");
 
-            // Response döndür
             return AdminResponse.builder()
-                    .id(admin.getId())
-                    .name(admin.getName())
-                    .email(admin.getEmail())
                     .token(token)
                     .build();
         } catch (Exception e) {
-            log.error("Admin giriş işlemi başarısız: {}", e.getMessage());
-            throw new RuntimeException("Admin giriş işlemi başarısız: " + e.getMessage());
+            log.error("Admin girişi başarısız: {}", e.getMessage());
+            throw new RuntimeException("Giriş başarısız: " + e.getMessage());
         }
     }
 } 

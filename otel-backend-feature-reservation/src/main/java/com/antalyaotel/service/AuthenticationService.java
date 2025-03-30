@@ -13,6 +13,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
@@ -32,9 +35,13 @@ public class AuthenticationService {
         Customer customer = customerRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Müşteri bulunamadı"));
         
-        String jwt = jwtService.generateToken(customer.getEmail(), customer.getRole());
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", customer.getRole());
+        String jwt = jwtService.generateToken(claims, customer.getEmail());
+        
         return AuthenticationResponse.builder()
                 .token(jwt)
+                .customerId(customer.getId())
                 .build();
     }
 
@@ -67,11 +74,15 @@ public class AuthenticationService {
                 .isActive(true)
                 .build();
 
-        customerRepository.save(customer);
-        String jwt = jwtService.generateToken(customer.getEmail(), customer.getRole());
+        customer = customerRepository.save(customer);
+        
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", customer.getRole());
+        String jwt = jwtService.generateToken(claims, customer.getEmail());
 
         return AuthenticationResponse.builder()
                 .token(jwt)
+                .customerId(customer.getId())
                 .build();
     }
 }
